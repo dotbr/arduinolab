@@ -1,2 +1,2 @@
-# arduino_lab
+# arduinolab
 code from our Arduino Labs
