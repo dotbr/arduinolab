@@ -1,3 +1,4 @@
+//oi, sou um comentario
 
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
