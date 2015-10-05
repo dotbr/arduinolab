@@ -9,14 +9,14 @@ Adafruit_HMC5883_Unified mag = Adafruit_HMC5883_Unified(12345);
 
 #define TRIGGER_PIN  15
 #define ECHO_PIN     14
-#define Beep         16
+#define BEEP         16
 
 Ultrasonic ultrasonic(TRIGGER_PIN, ECHO_PIN);
 AF_DCMotor motorE(1); 
 AF_DCMotor motorD(2);
 
-boolean indoPraFrente = false;
 boolean som = false;
+boolean obstaculo;
 
 const int margemAngulo = 3;
 int anguloAlvo = 0;
@@ -27,8 +27,7 @@ const int vel = 180;
 int velocidadeE = 0;
 int velocidadeD = 0;
 
-void displaySensorDetails(void)
-{
+void displaySensorDetails(void) {
   sensor_t sensor;
   mag.getSensor(&sensor);
   Serial.println("------------------------------------");
@@ -43,8 +42,7 @@ void displaySensorDetails(void)
   delay(500);
 }
 
-
-int verificarDistancia(){
+int verificarDistancia() {
   float cmMsec;
   long microsec = ultrasonic.timing();
 
@@ -52,63 +50,53 @@ int verificarDistancia(){
     
   Serial.print("CM: ");
   Serial.println(cmMsec);  
-  if (cmMsec < 60){
+  if (cmMsec < 60) {
        Serial.println(microsec);
   }
   return (int) cmMsec; 
 }
 
-void andarPraFrente(){
-  //if (!indoPraFrente) {
-    motorE.setSpeed(velocidadeE); //Define a velocidade maxima
-    motorE.run(FORWARD);//Gira o motor sentido horario
-    motorD.setSpeed(velocidadeD); //Define a velocidade maxima
-    motorD.run(FORWARD);//Gira o motor sentido horario
-    indoPraFrente = true;
-    delay(100);
-  //}
+void andarPraFrente() {
+  motorE.setSpeed(velocidadeE);   //Define a velocidade maxima
+  motorE.run(FORWARD);            //Gira o motor sentido horario
+  motorD.setSpeed(velocidadeD);   //Define a velocidade maxima
+  motorD.run(FORWARD);            //Gira o motor sentido horario
+  delay(100);
 }
 
-void darRe(int tempo){
-  //if (!indoPraFrente) {
-    motorE.setSpeed(vel); //Define a velocidade maxima
-    motorE.run(BACKWARD);//Gira o motor sentido horario
-    motorD.setSpeed(vel); //Define a velocidade maxima
-    motorD.run(BACKWARD);//Gira o motor sentido horario
-    //indoPraFrente = true;
-    delay(tempo);
-    parar();
-  //}
+void darRe(int tempo) {
+  motorE.setSpeed(vel);       //Define a velocidade maxima
+  motorE.run(BACKWARD);       //Gira o motor sentido horario
+  motorD.setSpeed(vel);       //Define a velocidade maxima
+  motorD.run(BACKWARD);       //Gira o motor sentido horario
+  delay(tempo);
+  parar();
 }
 
-void parar(){
-  //if (indoPraFrente) {
-    motorE.setSpeed(0); 
-    motorE.run(RELEASE);
-    motorD.setSpeed(0); 
-    motorD.run(RELEASE);
-    indoPraFrente = false;
-  //}
+void parar() {
+  motorE.setSpeed(0); 
+  motorE.run(RELEASE);
+  motorD.setSpeed(0); 
+  motorD.run(RELEASE);
 }
 
-void virarDireita(){
+void virarDireita() {
   motorE.setSpeed(vel); 
   motorE.run(FORWARD);
   motorD.setSpeed(vel); 
   motorD.run(BACKWARD);
   delay(400);
-  indoPraFrente = true;
   parar();  
 }
 
-void setup(){
+void setup() {
 
   Serial.begin(9600);
   Serial.println("HMC5883 Magnetometer Test"); Serial.println("");
-  pinMode(Beep,OUTPUT);
+  pinMode(BEEP,OUTPUT);
+
   /* Initialise the sensor */
-  if(!mag.begin())
-  {
+  if(!mag.begin()) {
     /* There was a problem detecting the HMC5883 ... check your connections */
     Serial.println("Ooops, no HMC5883 detected ... Check your wiring!");
     while(1);
@@ -121,47 +109,41 @@ void setup(){
   velocidadeD = vel;
   
   anguloAlvo = pegarBussola();
-  
 }
 
-void loop(){
-  if (!som){
-    analogWrite(Beep,255);
+void loop() {
+  if (!som) {
+    analogWrite(BEEP,255);
     som = true;
-  }else{
-    analogWrite(Beep,0);
+  } else {
+    analogWrite(BEEP,0);
     som = false;
   }
-  boolean obstaculo;
   
   anguloAtual = pegarBussola();
   calcDesiredTurn();
   
-//  if (verificarDistancia() < 25) { 
-   if (verificarDistancia() < 25) {
-    if (verificarDistancia() < 25) obstaculo = true;
-    else obstaculo = false;
-   } else obstaculo = false;
-//  } else obstaculo = false;
+  if (verificarDistancia() < 25) obstaculo = true;
+  else obstaculo = false;
   
   if (obstaculo) {
     //virarDireita
-   parar();
-   delay(200);
-   darRe(500); 
-   delay(500);
-   virarDireita();
-   delay(500);
-   anguloAlvo = pegarBussola();
+    parar();
+    delay(200);
+    darRe(500); 
+    delay(500);
+    virarDireita();
+    delay(500);
+    anguloAlvo = pegarBussola();
   } else {
-   //andarPraFrent
-   andarPraFrente();
+    //andarPraFrent
+    andarPraFrente();
   }
  delay(100); 
 }
 
 int pegarBussola() {
-    /* Get a new sensor event */ 
+  /* Get a new sensor event */ 
   sensors_event_t event; 
   mag.getEvent(&event);
  
@@ -197,34 +179,33 @@ int pegarBussola() {
   return (int)headingDegrees;
 }
 
-void calcDesiredTurn(void)
-{
-    // calculate where we need to turn to head to destination
-    int erroAtual = anguloAlvo - anguloAtual;
-    
-    // adjust for compass wrap
-    if (erroAtual < -180)      
-      erroAtual += 360;
-    if (erroAtual > 180)
-      erroAtual -= 360;
-  
-    // calculate which way to turn to intercept the targetHeading
-    if (abs(erroAtual) <= margemAngulo) {      // if within tolerance, don't turn
-      velocidadeD = vel;
-      velocidadeE = vel;
-    }
-    else if (erroAtual < 0) {
-      velocidadeE = vel - 30;
-      velocidadeD = vel;
-    }
-    else if (erroAtual > 0) {
-      velocidadeD = vel - 30;
-      velocidadeE = vel;
-    }
-    else {
-      velocidadeD = vel;
-      velocidadeE = vel;
-    }
+void calcDesiredTurn(void) {
+  // calculate where we need to turn to head to destination
+  int erroAtual = anguloAlvo - anguloAtual;
+
+  // adjust for compass wrap
+  if (erroAtual < -180)      
+    erroAtual += 360;
+  if (erroAtual > 180)
+    erroAtual -= 360;
+
+  // calculate which way to turn to intercept the targetHeading
+  if (abs(erroAtual) <= margemAngulo) {      // if within tolerance, don't turn
+    velocidadeD = vel;
+    velocidadeE = vel;
+  }
+  else if (erroAtual < 0) {
+    velocidadeE = vel - 30;
+    velocidadeD = vel;
+  }
+  else if (erroAtual > 0) {
+    velocidadeD = vel - 30;
+    velocidadeE = vel;
+  }
+  else {
+    velocidadeD = vel;
+    velocidadeE = vel;
+  }
  
 }  // calcDesiredTurn()
 
