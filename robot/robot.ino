@@ -1,4 +1,4 @@
-#include <Ultrasonic.h>
+#include <NewPing.h>
 #include <AFMotor.h>
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
@@ -9,13 +9,14 @@ Adafruit_HMC5883_Unified mag = Adafruit_HMC5883_Unified(12345);
 
 #define BEEP 16
 
-// Define pinos Ultrasonic Sensor HC-SRO4
-#define TRIGGER_PIN  15
-#define ECHO_PIN     14
-Ultrasonic ultrasonic(TRIGGER_PIN, ECHO_PIN);
+#define TRIGGER_PIN  15  // Arduino pin tied to trigger pin on the ultrasonic sensor.
+#define ECHO_PIN     14  // Arduino pin tied to echo pin on the ultrasonic sensor.
+#define MAX_DISTANCE 100 // Maximum distance we want to ping for (in centimeters). Maximum sensor distance is rated at 400-500cm.
 
-AF_DCMotor motorE(1); 
-AF_DCMotor motorD(2);
+NewPing sonar(TRIGGER_PIN, ECHO_PIN, MAX_DISTANCE); // NewPing setup of pins and maximum distance.
+
+AF_DCMotor motorE(4); 
+AF_DCMotor motorD(1);
 
 boolean indoPraFrente = false;
 boolean som = false;
@@ -47,17 +48,11 @@ void displaySensorDetails(void) {
 
 /* Ultrasonic Sensor - Retorna distancia obstáculo em centímetros */
   int verificarDistancia(){
-  float cmMsec;
-  long microsec = ultrasonic.timing();
-
-  cmMsec = ultrasonic.convert(microsec, Ultrasonic::CM);
-
+  
+  int cm = sonar.ping_cm();
   Serial.print("CM: ");
-  Serial.println(cmMsec);  
-  if (cmMsec < 60) {
-    Serial.println(microsec);
-  }
-  return (int) cmMsec; 
+  Serial.println(cm);  
+  return  (cm == 0 ? MAX_DISTANCE : cm); 
 }
 
 void andarPraFrente(){
