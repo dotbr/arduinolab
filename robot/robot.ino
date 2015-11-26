@@ -1,3 +1,27 @@
+/**
+ * Ubalab Robot Project
+ *
+ * Name: robot.ino
+ * Purpose: learning and encourage students to know basics arduino skills.
+ * Last update: 26/11/2015
+ *
+ * Hardware:
+ *    - Arduino Uno r3
+ *    - Micro Servo Motor SG90
+ *    - HC-SR04 Ultrasonic Sensor
+ *    - L293D Driver Four H-Bridge
+ *    - Triple Axis Magnetometer - HMC5883
+ *    - Kit 2 Wheels
+ *    - 2 Celular Batteries
+ *    - Buzzer
+ *
+ * Libraries:
+ *    - Adafruit HMC5883 Unified by Adafruit Version 1.0.0
+ *    - Adafruit Motor Shield by Adafruit Version 1.0.0
+ *    - Adafruit Unified Sensor by Adafruit Version 1.0.2
+ *    - NewPing
+ */
+
 #include <NewPing.h>
 #include <AFMotor.h>
 #include <Wire.h>
