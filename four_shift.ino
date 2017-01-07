@@ -1,4 +1,4 @@
-//Pin connected to ST_CP of 74HC595
+//Pin connected to ST_CP of 74HC595---
 int latchPin = 10;
 //Pin connected to SH_CP of 74HC595
 int clockPin = 13;
